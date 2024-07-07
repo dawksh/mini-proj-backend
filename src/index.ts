@@ -25,7 +25,7 @@ app.post("/credential", async (req, res) => {
     const { title, txHash, description, image, owner, creator } = req.body;
     const id = randomUUID()
     const query = await sql`
-    insert into users values(${id}, ${title}, ${txHash}, ${description}, ${image}, ${owner}, ${creator});
+    insert into credentials values(${id}, ${title}, ${txHash}, ${description}, ${image}, ${owner}, ${creator});
     `
     return res.status(200).send({
         query,
@@ -33,6 +33,16 @@ app.post("/credential", async (req, res) => {
     })
 })
 app.get("/user", async (req, res) => {
+    const { walletAddress } = req.query;
+    const query = await sql`
+    select * from users where walletAddress ILIKE ${walletAddress as string};
+    `
+    return res.status(200).send({
+        result: query,
+        status: "OK"
+    })
+})
+app.get("/userCredentials", async (req, res) => {
     const { walletAddress } = req.query;
     const query = await sql`
     select * from users where walletAddress ILIKE ${walletAddress as string};
