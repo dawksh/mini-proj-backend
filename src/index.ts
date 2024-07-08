@@ -45,7 +45,7 @@ app.get("/user", async (req, res) => {
 app.get("/userCredentials", async (req, res) => {
     const { walletAddress } = req.query;
     const query = await sql`
-    select * from users where walletAddress ILIKE ${walletAddress as string};
+    select * from credentials, users where users.walletAddress ILIKE ${walletAddress as string} AND credentials.owner = users.id;
     `
     return res.status(200).send({
         result: query,
