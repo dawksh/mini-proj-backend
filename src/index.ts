@@ -45,13 +45,43 @@ app.get("/user", async (req, res) => {
 app.get("/userCredentials", async (req, res) => {
     const { walletAddress } = req.query;
     const query = await sql`
-    select * from credentials, users where users.walletAddress ILIKE ${walletAddress as string} AND credentials.owner = users.id;
+    select c.* from credentials c JOIN users u on u.id = c.owner where u.wallet_address = ${walletAddress as string};
     `
     return res.status(200).send({
         result: query,
         status: "OK"
     })
 })
+app.post("/vote", async (req, res) => {
+    const { user_id, credential_id } = req.body;
+    const id = randomUUID()
+    try {
+        const query = await sql`
+        insert into upvotes values(${id}, ${user_id}, ${credential_id});
+        `
+        return res.status(200).send({
+            result: query,
+            status: "OK"
+        })
+    } catch (e) {
+        console.log(e)
+        return res.status(500).send({
+            error: e
+        })
+    }
+})
+app.get("/votes", async (req, res) => {
+    const { credential_id } = req.query;
+    const query = await sql`
+    select count(*) from upvotes where credential_id = ${credential_id as string};
+    `
+    return res.status(200).send({
+        result: query,
+        status: "OK"
+    })
+})
+
+
 
 app.listen(PORT, async () => {
     console.log("Server Listening on PORT: ", PORT);
