@@ -2,11 +2,18 @@ import express from "express";
 import { config } from "dotenv";
 import { sql } from "./utils/postgres";
 import { randomUUID } from "crypto";
+import cors from "cors"
 
 config();
 
 const PORT = process.env.PORT || 3000;
 const app = express();
+const corsOptions = {
+    origin: true,
+    credentials: true,
+};
+
+app.use(cors(corsOptions))
 
 app.use(express.json());
 
@@ -52,6 +59,16 @@ app.get("/userCredentials", async (req, res) => {
         status: "OK"
     })
 })
+app.get("/credential", async (req, res) => {
+    const { id } = req.query;
+    const query = await sql`
+    select * from credentials where id = ${id as string};
+    `
+    return res.status(200).send({
+        result: query,
+        status: "OK"
+    })
+})
 app.post("/vote", async (req, res) => {
     const { user_id, credential_id } = req.body;
     const id = randomUUID()
@@ -74,6 +91,15 @@ app.get("/votes", async (req, res) => {
     const { credential_id } = req.query;
     const query = await sql`
     select count(*) from upvotes where credential_id = ${credential_id as string};
+    `
+    return res.status(200).send({
+        result: query,
+        status: "OK"
+    })
+})
+app.get("/credentials", async (req, res) => {
+    const query = await sql`
+    select * from credentials;
     `
     return res.status(200).send({
         result: query,
